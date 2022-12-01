@@ -1,3 +1,3 @@
-# Solving Advent of Code
+# Solving Advent of Code in `js`
 
-Moving past years into here for single `js` repo
+Moving past years into here as well 
