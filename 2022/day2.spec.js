@@ -1,75 +1,162 @@
 const fs = require("fs");
-const { parseInputIntoNumbersArray } = require("./common");
+const { parseInputIntoStringArray } = require("./common");
 
-const puzzleInput = fs.readFileSync(__dirname + "/inputs/1.txt", {
+const puzzleInput = fs.readFileSync(__dirname + "/inputs/2.txt", {
   encoding: "utf8",
 });
-const sampleInput = fs.readFileSync(__dirname + "/inputs/1sample.txt", {
+const sampleInput = fs.readFileSync(__dirname + "/inputs/2sample.txt", {
   encoding: "utf8",
 });
 
-const elfWithMostCalories = (food) => {
-  let mostCalories = 0;
-  let currentElfCalories = 0;
+const ROCK = "Rock";
+const PAPER = "Paper";
+const SCISSORS = "Scissors";
 
-  food.forEach((calories, idx) => {
-    if (calories === 0 || idx === food.length - 1) {
-      if (currentElfCalories > mostCalories) {
-        mostCalories = currentElfCalories;
-      }
-      currentElfCalories = 0;
-    } else {
-      currentElfCalories += calories;
-    }
-  });
+const WIN = "Win";
+const DRAW = "Draw";
+const LOST = "Lose";
 
-  return mostCalories;
+const calculatePointsForChoice = (p) => {
+  switch (p) {
+    case ROCK:
+      return 1;
+    case PAPER:
+      return 2;
+    case SCISSORS:
+      return 3;
+  }
+  return 0;
 };
 
-const topThreeElves = (food) => {
-  let totalCalories = [0, 0, 0];
-  let currentElfCalories = 0;
-
-  const final = food.length;
-
-  for (let i = 0; i < final; i++) {
-    let calories = food[i];
-    if (calories !== 0) {
-      currentElfCalories += calories;
+const calculateMove = (g) => {
+  switch (g) {
+    case "A":
+    case "X": {
+      return ROCK;
     }
-
-    if (calories === 0 || i === final - 1) {
-      totalCalories.push(currentElfCalories);
-      currentElfCalories = 0;
+    case "B":
+    case "Y": {
+      return PAPER;
     }
-    totalCalories.sort((a, b) => (a > b ? -1 : 0));
-    totalCalories = totalCalories.slice(0, 3);
+    case "C":
+    case "Z": {
+      return SCISSORS;
+    }
+  }
+  return "";
+};
+
+const calculateScore = (p1, p2) => {
+  let score = 0;
+  let pointsForPlayer2Choice = calculatePointsForChoice(p2);
+  score = score + pointsForPlayer2Choice;
+
+  if (p1 === p2) {
+    // 3 points for a draw
+    score += 3;
+  } else if (
+    (p1 === ROCK && p2 === SCISSORS) ||
+    (p1 === PAPER && p2 === ROCK) ||
+    (p1 === SCISSORS && p2 === PAPER)
+  ) {
+    // 0 points for a loss
+  } else {
+    // 6 points for a win
+    score += 6;
   }
 
-  return totalCalories.reduce((prev, next) => {
-    return prev + next;
-  }, 0);
+  return score;
+};
+
+const rockPapersStrategy = (games) => {
+  let total = 0;
+
+  games.forEach((g) => {
+    const match = g.split(" ");
+    const p1 = calculateMove(match[0]);
+    const p2 = calculateMove(match[1]);
+    const matchScore = calculateScore(p1, p2);
+    total = total + matchScore;
+  });
+
+  return total;
+};
+
+const determineOutcome = (o) => {
+  switch (o) {
+    case "X":
+      return LOST;
+    case "Y":
+      return DRAW;
+    case "Z":
+      return WIN;
+  }
+  return "";
+};
+
+const calculateMoveWithOutcome = (p1, out) => {
+  if (out === DRAW) {
+    return p1;
+  }
+
+  if (p1 === ROCK) {
+    if (out === WIN) {
+      return PAPER;
+    } else {
+      return SCISSORS;
+    }
+  }
+  if (p1 === PAPER) {
+    if (out === WIN) {
+      return SCISSORS;
+    } else {
+      return ROCK;
+    }
+  }
+  if (p1 === SCISSORS) {
+    if (out === WIN) {
+      return ROCK;
+    } else {
+      return PAPER;
+    }
+  }
+  return "";
+};
+
+const rockPapersStrategyWithLegend = (games) => {
+  let total = 0;
+
+  games.forEach((g) => {
+    const match = g.split(" ");
+    const p1 = calculateMove(match[0]);
+    const outcome = determineOutcome(match[1]);
+    const p2 = calculateMoveWithOutcome(p1, outcome);
+    const matchScore = calculateScore(p1, p2);
+    total = total + matchScore;
+  });
+
+  return total;
 };
 
 describe("Day 1", () => {
   test("part 1 sample", () => {
-    expect(
-      elfWithMostCalories(parseInputIntoNumbersArray(sampleInput))
-    ).toEqual(24000);
+    expect(rockPapersStrategy(parseInputIntoStringArray(sampleInput))).toEqual(
+      15
+    );
   });
   test("part 1 solve", () => {
-    expect(
-      elfWithMostCalories(parseInputIntoNumbersArray(puzzleInput))
-    ).toEqual(70116);
+    expect(rockPapersStrategy(parseInputIntoStringArray(puzzleInput))).toEqual(
+      10816
+    );
   });
   test("part 2 sample", () => {
-    expect(topThreeElves(parseInputIntoNumbersArray(sampleInput))).toEqual(
-      45000
-    );
+    expect(
+      rockPapersStrategyWithLegend(parseInputIntoStringArray(sampleInput))
+    ).toEqual(12);
   });
-  test("part 2 solve", () => {
-    expect(topThreeElves(parseInputIntoNumbersArray(puzzleInput))).toEqual(
-      206582
-    );
-  });
+  // test("part 2 solve", () => {
+  //   expect(rockPapersStrategy(parseInputIntoNumbersArray(sampleInput))).toEqual(
+  //     15
+  //   );
+  // });
 });
