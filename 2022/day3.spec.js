@@ -76,6 +76,35 @@ const ruckSackPriority = (packs) => {
   return total;
 };
 
+const ruckSackBadges = (packs) => {
+  let result = 0;
+  let currentGroup = [];
+  let currentDuplicates = [];
+
+  for (let i = 0; i < packs.length; i++) {
+    currentGroup.push(packs[i]);
+
+    if (i % 3 === 2) {
+      currentGroup[0].split("").forEach((letter) => {
+        if (
+          currentGroup[1].includes(letter) &&
+          currentGroup[2].includes(letter) &&
+          !currentDuplicates.includes(letter)
+        ) {
+          currentDuplicates.push(letter);
+        }
+      });
+
+      result += determinePriority(currentDuplicates[0]);
+
+      currentDuplicates = [];
+      currentGroup = [];
+    }
+  }
+
+  return result;
+};
+
 describe("Day 3", () => {
   test("part 1 sample", () => {
     expect(ruckSackPriority(parseInputIntoStringArray(sampleInput))).toEqual(
@@ -87,10 +116,12 @@ describe("Day 3", () => {
       8252
     );
   });
-  // test("part 2 sample", () => {
-
-  // });
-  // test("part 2 solve", () => {
-
-  // });
+  test("part 2 sample", () => {
+    expect(ruckSackBadges(parseInputIntoStringArray(sampleInput))).toEqual(70);
+  });
+  test("part 2 solve", () => {
+    expect(ruckSackBadges(parseInputIntoStringArray(puzzleInput))).toEqual(
+      2828
+    );
+  });
 });
